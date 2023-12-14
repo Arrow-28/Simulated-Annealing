@@ -1,0 +1,61 @@
+import random
+
+def cost_function(path):
+    cost = 0
+    for cell in path:
+        if cell == "1":
+            cost += 1
+    return cost
+
+def generate_neighbor(path):
+    i = random.randint(1, len(path) - 2)
+    path[i], path[i + 1] = path[i + 1], path[i]
+    return path
+
+def accept_neighbor(current_cost, new_cost, temperature):
+    if new_cost < current_cost:
+        return True
+    else:
+        p = random.uniform(0, 1)
+        return p < math.exp(-(new_cost - current_cost) / temperature)
+
+def simulated_annealing(maze, start, end, max_iterations, temperature_schedule):
+    current_path = []
+    current_cost = cost_function(current_path)
+    best_path = current_path
+    best_cost = current_cost
+    for _ in range(max_iterations):
+        neighbor_path = generate_neighbor(current_path)
+        neighbor_cost = cost_function(neighbor_path)
+        if accept_neighbor(current_cost, neighbor_cost, temperature):
+            current_path = neighbor_path
+            current_cost = neighbor_cost
+            if current_cost < best_cost:
+                best_path = current_path
+                best_cost = current_cost
+        temperature = temperature_schedule(temperature)
+    return best_path, best_cost
+
+# Example usage
+maze = [  # 10x10 maze with walls as "1" and empty spaces as "0"
+    "1111111111",
+    "0000000000",
+    "1000001001",
+    "0011000000",
+    "0000111000",
+    "0000000100",
+    "0000001000",
+    "0000000010",
+    "0000000001",
+    "1111111111",
+]
+start = (1, 1)
+end = (8, 8)
+
+max_iterations = 1000
+temperature_schedule = lambda t: t * 0.9
+
+best_path, best_cost = simulated_annealing(maze, start, end, max_iterations, temperature_schedule)
+
+print("Best path:", best_path)
+print("Best cost:", best_cost)
